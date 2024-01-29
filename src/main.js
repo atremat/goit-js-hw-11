@@ -8,7 +8,7 @@ const refs = {
   textInput: document.querySelector('#query'),
   searchBtn: document.querySelector('.search-button'),
   galleryList: document.querySelector('.gallery-list'),
-  loadingStatus: document.querySelector('.loading'),
+  loader: document.querySelector('.loader'),
 };
 
 //options for simplelightbox
@@ -38,7 +38,7 @@ function onSearch(e) {
   });
 
   //show loading... status
-  refs.loadingStatus.classList.remove('is-hidden');
+  refs.loader.classList.remove('is-hidden');
 
   try {
     fetch(`https://pixabay.com/api/?${searchParams}`)
@@ -58,11 +58,14 @@ function onSearch(e) {
             message: `Sorry, there are no images matching your search query. Please try again!`,
             position: 'topRight',
           });
+          refs.galleryList.innerHTML = '';
+          //hiding loading status
+          refs.loader.classList.add('is-hidden');
         }
         refs.galleryList.innerHTML = createMarkup(data.hits);
 
         //hiding loading status
-        refs.loadingStatus.classList.add('is-hidden');
+        refs.loader.classList.add('is-hidden');
 
         //initializing simplelightbox
         const gallery = new SimpleLightbox(
