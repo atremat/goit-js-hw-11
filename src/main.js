@@ -1,5 +1,7 @@
 import SimpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
+import iziToast from 'izitoast';
+import 'izitoast/dist/css/iziToast.min.css';
 
 const refs = {
   form: document.querySelector('.form'),
@@ -34,7 +36,10 @@ function onSearch(e) {
     orientation: 'horizontal',
     safesearch: true,
   });
+
+  //show loading... status
   refs.loadingStatus.classList.remove('is-hidden');
+
   try {
     fetch(`https://pixabay.com/api/?${searchParams}`)
       .then(response => {
@@ -44,18 +49,34 @@ function onSearch(e) {
         return response.json();
       })
       .then(data => {
-        console.log(data.hits);
+        //!debug
+        // console.log(data);
+
+        //if images not found, then alert
+        if (data.total === 0) {
+          iziToast.error({
+            message: `Sorry, there are no images matching your search query. Please try again!`,
+            position: 'topRight',
+          });
+        }
         refs.galleryList.innerHTML = createMarkup(data.hits);
+
+        //hiding loading status
+        refs.loadingStatus.classList.add('is-hidden');
 
         //initializing simplelightbox
         const gallery = new SimpleLightbox(
           '.gallery-list a',
           simplelightboxOptions
         );
+        gallery.refresh();
       })
       .catch(error => {
         // Error handling
         console.log(error);
+      })
+      .finally(() => {
+        refs.form.reset();
       });
   } catch {
     console.log('error');
