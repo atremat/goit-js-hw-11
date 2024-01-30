@@ -49,18 +49,19 @@ function onSearch(e) {
         return response.json();
       })
       .then(data => {
-        //!debug
-        // console.log(data);
-
         //if images not found, then alert
         if (data.total === 0) {
           iziToast.error({
             message: `Sorry, there are no images matching your search query. Please try again!`,
             position: 'topRight',
           });
+
+          //clear gallery if images not found
           refs.galleryList.innerHTML = '';
+
           //hiding loading status
           refs.loader.classList.add('is-hidden');
+          return;
         }
         refs.galleryList.innerHTML = createMarkup(data.hits);
 
