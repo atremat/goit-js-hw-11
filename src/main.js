@@ -28,7 +28,13 @@ refs.form.addEventListener('submit', onSearch);
 function onSearch(e) {
   e.preventDefault();
 
+  //show css-loader
+  loaderShow();
+
+  //value of input
   const searchText = e.currentTarget.elements.query.value;
+
+  //parameters of searching query
   const searchParams = new URLSearchParams({
     key: '42031589-0742425241f8784341d5a922f',
     q: searchText,
@@ -37,57 +43,20 @@ function onSearch(e) {
     safesearch: true,
   });
 
-  //show loading... status
-  refs.loader.classList.remove('is-hidden');
-
-  try {
-    fetch(`https://pixabay.com/api/?${searchParams}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(response.status);
-        }
-        return response.json();
-      })
-      .then(data => {
-        //if images not found, then alert
-        if (data.total === 0) {
-          iziToast.error({
-            message: `Sorry, there are no images matching your search query. Please try again!`,
-            position: 'topRight',
-          });
-
-          //clear gallery if images not found
-          refs.galleryList.innerHTML = '';
-
-          //hiding loading status
-          refs.loader.classList.add('is-hidden');
-          return;
-        }
-        refs.galleryList.innerHTML = createMarkup(data.hits);
-
-        //hiding loading status
-        refs.loader.classList.add('is-hidden');
-
-        //initializing simplelightbox
-        const gallery = new SimpleLightbox(
-          '.gallery-list a',
-          simplelightboxOptions
-        );
-        gallery.refresh();
-      })
-      .catch(error => {
-        // Error handling
-        console.log(error);
-      })
-      .finally(() => {
-        refs.form.reset();
-      });
-  } catch {
-    console.log('error');
-  }
+  //fetch photos
+  fetchPhotos(searchParams)
+    .then(data => {
+      createGallery(data);
+    })
+    .catch(error => {
+      console.log(error);
+    })
+    .finally(() => {
+      refs.form.reset();
+    });
 }
 
-function createMarkup(photoList) {
+function renderGalleryMarkup(photoList) {
   //creating markup
   return photoList
     .map(photo => {
@@ -105,4 +74,49 @@ function createMarkup(photoList) {
       `;
     })
     .join('\n');
+}
+
+function loaderHide() {
+  refs.loader.classList.add('is-hidden');
+}
+
+function loaderShow() {
+  refs.loader.classList.remove('is-hidden');
+}
+
+function createGallery(data) {
+  //if images are not found, then alert
+  if (data.total === 0) {
+    iziToast.error({
+      message: `Sorry, there are no images matching your search query. Please try again!`,
+      position: 'topRight',
+    });
+
+    //clear gallery if images not found
+    refs.galleryList.innerHTML = '';
+
+    //hiding css-load
+    loaderHide();
+    return;
+  }
+
+  //if images are found, then rendering gallery
+  refs.galleryList.innerHTML = renderGalleryMarkup(data.hits);
+
+  //hiding css-load
+  loaderHide();
+
+  //initializing simplelightbox
+  const gallery = new SimpleLightbox('.gallery-list a', simplelightboxOptions);
+  gallery.refresh();
+}
+
+//fetching search qquery
+function fetchPhotos(searchParams) {
+  return fetch(`https://pixabay.com/api/?${searchParams}`).then(response => {
+    if (!response.ok) {
+      throw new Error(response.status);
+    }
+    return response.json();
+  });
 }
